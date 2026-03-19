@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tax Code Verifier</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="window-shell">
+    <header class="header">
+      <div>
+        <h1>Tra cứu MST TNCN</h1>
+      </div>
+    </header>
+
+    <main class="app-grid">
+      <section class="main-column">
+        <div class="panel">
+          <div id="dropzone">
+            <span>Kéo thả file Excel hoặc <button id="btnChooseFileInline" class="link-button">chọn file</button></span>
+            <span class="hint">.xlsx, .xls</span>
+          </div>
+
+          <div id="fileInfo" hidden>
+            <span id="fileName" class="file-name">Chưa chọn file</span>
+            <button id="btnClearFile" class="btn-icon" title="Xóa file">✕</button>
+          </div>
+
+          <div id="columnSelector" hidden>
+            <div class="panel-heading">
+              <h2>Mapping cột</h2>
+              <p>Giữ gần flow extension: chọn file → map cột → tải danh sách.</p>
+            </div>
+
+            <div class="form-grid">
+              <div class="col-row">
+                <label for="colCccd">Thông tin CCCD</label>
+                <select id="colCccd"></select>
+              </div>
+              <div class="col-row">
+                <label for="colMst">MST (cũ)</label>
+                <select id="colMst"></select>
+              </div>
+              <div class="col-row">
+                <label for="colDongBo">Đồng bộ CCCD</label>
+                <select id="colDongBo"></select>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button id="btnLoad" class="btn-primary">Tải danh sách</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="statsBar" class="stats-grid" hidden>
+          <div class="stat"><span id="statTotal">0</span><small>Tổng</small></div>
+          <div class="stat"><span id="statDone">0</span><small>Xong</small></div>
+          <div class="stat dongbo"><span id="statDongBo">0</span><small>Đồng bộ</small></div>
+          <div class="stat chuadb"><span id="statChuaDongBo">0</span><small>Chưa ĐB</small></div>
+          <div class="stat notfound"><span id="statKhongTimThay">0</span><small>Không thấy</small></div>
+          <div class="stat error"><span id="statError">0</span><small>Lỗi</small></div>
+        </div>
+
+        <div class="panel" id="runtimePanel">
+          <div id="currentCode" hidden>
+            <span class="processing-label">Đang kiểm tra:</span>
+            <b id="codeDisplay"></b>
+            <small id="phaseDisplay"></small>
+          </div>
+
+          <div id="progressWrap" hidden>
+            <progress id="progressBar" value="0" max="100"></progress>
+            <span id="progressPct">0%</span>
+          </div>
+
+          <div id="controls" hidden>
+            <button id="btnStart" class="btn-primary" disabled>Bắt đầu</button>
+            <button id="btnPause" class="btn-secondary" disabled>Tạm dừng</button>
+            <button id="btnStop" class="btn-danger" disabled>Dừng</button>
+            <button id="btnExport" class="btn-success" disabled>⬇ Xuất Excel</button>
+          </div>
+        </div>
+
+        <div id="resultsWrap" class="panel" hidden>
+          <div class="section-header">
+            <div>
+              <div class="section-title">Kết quả gần đây</div>
+              <div class="section-subtitle">Hiển thị 15 dòng mới nhất để giữ UI nhẹ khi cửa sổ nhỏ.</div>
+            </div>
+            <button id="btnClearResults" class="btn-icon" title="Xóa kết quả">✕</button>
+          </div>
+          <div class="table-scroll">
+            <table id="resultsTable">
+              <thead>
+                <tr>
+                  <th>CCCD / MST</th>
+                  <th>Đồng bộ CCCD</th>
+                  <th>Tên NNT</th>
+                  <th>MST Tìm thấy</th>
+                  <th>Kết quả</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-column">
+        <section class="panel settings-panel">
+          <div class="panel-heading">
+            <h2>Settings / Proxy</h2>
+            <p>Dùng cho runtime network của hidden BrowserWindow, không chỉ npm install.</p>
+          </div>
+
+          <div class="proxy-mode-group">
+            <label class="radio-option">
+              <input type="radio" name="proxyMode" value="system" checked />
+              <span>Dùng proxy hệ thống / trình duyệt (khuyến nghị trên Windows)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="proxyMode" value="manual" />
+              <span>Nhập proxy thủ công</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="proxyMode" value="direct" />
+              <span>Kết nối trực tiếp, bỏ qua proxy</span>
+            </label>
+          </div>
+
+          <div id="manualProxyFields" class="form-grid compact" hidden>
+            <div class="col-row stack-on-small">
+              <label for="httpProxy">HTTP proxy</label>
+              <input id="httpProxy" type="text" placeholder="http://host:port hoặc host:port" />
+            </div>
+            <div class="col-row stack-on-small">
+              <label for="httpsProxy">HTTPS proxy</label>
+              <input id="httpsProxy" type="text" placeholder="http://host:port hoặc host:port" />
+            </div>
+            <div class="col-row stack-on-small">
+              <label for="socksProxy">SOCKS proxy</label>
+              <input id="socksProxy" type="text" placeholder="socks5://host:port (tùy chọn)" />
+            </div>
+            <div class="col-row stack-on-small">
+              <label for="bypassRules">Bypass / no_proxy</label>
+              <input id="bypassRules" type="text" placeholder="localhost,127.0.0.1,*.internal,<local>" />
+            </div>
+          </div>
+
+          <div class="proxy-status-box">
+            <div><strong>Runtime mode:</strong> <span id="proxyModeLabel">system</span></div>
+            <div><strong>Effective proxy:</strong> <span id="proxyEffective">system</span></div>
+            <div><strong>Applied:</strong> <span id="proxyAppliedAt">—</span></div>
+          </div>
+
+          <div class="action-row wrap">
+            <button id="btnSaveProxy" class="btn-primary">Lưu cấu hình proxy</button>
+            <button id="btnRefreshProxy" class="btn-secondary">Kiểm tra lại</button>
+          </div>
+
+          <p class="settings-note">
+            Gợi ý: nếu máy đã cấu hình proxy ở Windows/Chrome/Edge, để <strong>System</strong>. Chỉ chuyển sang <strong>Manual</strong> khi cần override runtime của app.
+          </p>
+        </section>
+      </aside>
+    </main>
+  </div>
+  <script src="./renderer.js"></script>
+</body>
+</html>
