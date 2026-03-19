@@ -8,6 +8,9 @@ const PROXY_SETTINGS_FILE = 'proxy-settings.json';
 
 let mainWindow;
 let service;
+let isQuitting = false;
+let shutdownPromise = null;
+let forcedExitTimer = null;
 let appState = createInitialState();
 const logger = createLogger();
 
@@ -38,7 +41,8 @@ function createInitialState() {
     currentFilePath: '',
     proxySettings: createDefaultProxySettings(),
     debug: {
-      logPath: '',
+      enabled: logger.debugEnabled,
+      logPath: logger.debugEnabled ? '' : '',
     },
   };
 }
@@ -95,6 +99,52 @@ function emitState() {
   }
 }
 
+function clearForcedExitTimer() {
+  if (!forcedExitTimer) return;
+  clearTimeout(forcedExitTimer);
+  forcedExitTimer = null;
+}
+
+function scheduleForcedExit(reason) {
+  if (forcedExitTimer || process.platform === 'darwin') return;
+  forcedExitTimer = setTimeout(() => {
+    logger.log('[app]', 'forced-exit-timeout', { reason, timeoutMs: 4000 });
+    app.exit(0);
+  }, 4000);
+  forcedExitTimer.unref?.();
+}
+
+async function shutdownApp(reason = 'unknown') {
+  if (shutdownPromise) return shutdownPromise;
+  shutdownPromise = (async () => {
+    isQuitting = true;
+    logger.log('[app]', 'shutdown-start', { reason });
+    scheduleForcedExit(reason);
+
+    try {
+      await service?.dispose();
+    } catch (error) {
+      logger.logError('[app]', 'shutdown-dispose-failed', error, { reason });
+    }
+
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.removeAllListeners('close');
+      mainWindow.destroy();
+    }
+
+    logger.log('[app]', 'shutdown-finish', { reason });
+
+    if (process.platform === 'darwin') {
+      clearForcedExitTimer();
+      app.quit();
+      return;
+    }
+
+    app.exit(0);
+  })();
+  return shutdownPromise;
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1180,
@@ -109,12 +159,22 @@ function createWindow() {
     },
   });
 
+  mainWindow.on('close', (event) => {
+    if (isQuitting || process.platform === 'darwin') return;
+    event.preventDefault();
+    void shutdownApp('main-window-close');
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 }
 
 async function bootstrapService() {
   appState.proxySettings = await loadProxySettings();
-  appState.debug = { logPath: logger.logPath };
+  appState.debug = { enabled: logger.debugEnabled, logPath: logger.debugEnabled ? logger.logPath : '' };
   service = new TaxVerifierService({
     onStatePatch: (patch) => {
       appState = {
@@ -148,7 +208,7 @@ async function bootstrapService() {
 
 app.whenReady().then(async () => {
   logger.resetSessionMarker();
-  appState.debug = { logPath: logger.logPath };
+  appState.debug = { enabled: logger.debugEnabled, logPath: logger.debugEnabled ? logger.logPath : '' };
   logger.log('[app]', 'ready-start', {
     userData: app.getPath('userData'),
     cwd: process.cwd(),
@@ -164,12 +224,19 @@ app.whenReady().then(async () => {
   throw error;
 });
 
-app.on('window-all-closed', async () => {
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     logger.log('[app]', 'window-all-closed');
-    await service?.dispose();
-    app.quit();
+    void shutdownApp('window-all-closed');
   }
+});
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
+app.on('will-quit', () => {
+  clearForcedExitTimer();
 });
 
 app.on('render-process-gone', (_event, webContents, details) => {
@@ -193,6 +260,23 @@ ipcMain.handle('dialog:pick-file', async () => {
     filters: [{ name: 'Excel', extensions: ['xlsx', 'xls'] }],
   });
   return result.canceled ? null : result.filePaths[0];
+});
+
+ipcMain.handle('file:download-sample', async () => {
+  logger.log('[app]', 'sample-download-start');
+  const workbookBuffer = service.createSampleWorkbook();
+  const defaultPath = path.join(app.getPath('downloads'), 'tax-code-verification-sample.xlsx');
+  const saveResult = await dialog.showSaveDialog(mainWindow, {
+    defaultPath,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+  });
+  if (saveResult.canceled || !saveResult.filePath) {
+    logger.log('[app]', 'sample-download-canceled');
+    return { canceled: true };
+  }
+  await fs.writeFile(saveResult.filePath, workbookBuffer);
+  logger.log('[app]', 'sample-download-done', { filePath: saveResult.filePath });
+  return { canceled: false, path: saveResult.filePath };
 });
 
 ipcMain.handle('file:load', async (_event, filePath) => {

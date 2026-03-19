@@ -2,6 +2,7 @@ const $ = (id) => document.getElementById(id);
 
 const dropzone = $('dropzone');
 const btnChooseFileInline = $('btnChooseFileInline');
+const btnDownloadSample = $('btnDownloadSample');
 const fileInfo = $('fileInfo');
 const fileName = $('fileName');
 const btnClearFile = $('btnClearFile');
@@ -57,6 +58,18 @@ dropzone.addEventListener('click', async (event) => {
 btnChooseFileInline.addEventListener('click', async (event) => {
   event.stopPropagation();
   await openWorkbookPicker();
+});
+
+btnDownloadSample.addEventListener('click', async () => {
+  btnDownloadSample.disabled = true;
+  try {
+    const result = await window.taxApp.downloadSampleFile();
+    if (result && !result.canceled) {
+      alert(`Đã lưu file mẫu: ${result.path}`);
+    }
+  } finally {
+    btnDownloadSample.disabled = false;
+  }
 });
 
 btnClearFile.addEventListener('click', () => {

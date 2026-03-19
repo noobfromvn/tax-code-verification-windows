@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('taxApp', {
   getDebugLogPath: () => ipcRenderer.invoke('app:get-debug-log-path'),
   pickFile: () => ipcRenderer.invoke('dialog:pick-file'),
   loadFile: (filePath) => ipcRenderer.invoke('file:load', filePath),
+  downloadSampleFile: () => ipcRenderer.invoke('file:download-sample'),
   prepareQueue: (columns) => ipcRenderer.invoke('queue:prepare', columns),
   start: () => ipcRenderer.invoke('process:start'),
   pause: () => ipcRenderer.invoke('process:pause'),

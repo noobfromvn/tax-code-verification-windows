@@ -17,9 +17,17 @@
     <main class="app-grid">
       <section class="main-column">
         <div class="panel">
+          <div class="inline-guide">
+            <strong>Cách dùng nhanh:</strong> Tải file mẫu hoặc chọn Excel của bạn => kiểm tra mapping cột => bấm <strong>Tải danh sách</strong> => bấm <strong>Bắt đầu</strong> => cuối cùng <strong>Xuất Excel</strong>.
+          </div>
+
           <div id="dropzone">
             <span>Kéo thả file Excel hoặc <button id="btnChooseFileInline" class="link-button">chọn file</button></span>
             <span class="hint">.xlsx, .xls</span>
+          </div>
+
+          <div class="action-row action-row-tight">
+            <button id="btnDownloadSample" class="btn-secondary">Tải file mẫu</button>
           </div>
 
           <div id="fileInfo" hidden>
@@ -30,7 +38,7 @@
           <div id="columnSelector" hidden>
             <div class="panel-heading">
               <h2>Mapping cột</h2>
-              <p>Giữ gần flow extension: chọn file → map cột → tải danh sách.</p>
+              <p>Chọn file → map cột → tải danh sách.</p>
             </div>
 
             <div class="form-grid">
