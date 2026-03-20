@@ -1,95 +1,48 @@
 # Tax Code Verification for Windows
 
-Ứng dụng desktop Windows/Electron được xây lại từ extension Chrome `tax-code-verification`, với mục tiêu giữ luồng sử dụng và hành vi nghiệp vụ sát nhất có thể.
-
-## Nguồn tham chiếu
-Repo gốc dùng để phân tích và đối chiếu hành vi:
+Ứng dụng desktop Windows dùng để tra cứu MST/CCCD từ file Excel, được xây lại dựa trên repo gốc:
 - https://github.com/kyimmQ/tax-code-verification
 
-## Chức năng chính
+## Tính năng
 - Mở file Excel `.xlsx` / `.xls`
 - Tự nhận diện cột **CCCD**, **MST**, **Đồng bộ CCCD**
-- Tra cứu theo 2 pha: **CCCD -> MST fallback**
-- Xử lý CAPTCHA bằng **Tesseract.js** cục bộ
-- Tạm dừng / tiếp tục / dừng hàng đợi
+- Tra cứu theo 2 bước: **CCCD -> MST fallback**
+- OCR CAPTCHA cục bộ bằng **Tesseract.js**
+- Tạm dừng / tiếp tục / dừng quá trình xử lý
 - Xuất file Excel kết quả
-- Tải nhanh file Excel mẫu để test ngay trên máy Windows
-- Hỗ trợ proxy runtime ngay trong giao diện app
+- Tải **file Excel mẫu** để test nhanh
+- Cấu hình **proxy runtime** ngay trong ứng dụng
 - Giao diện responsive hơn khi resize cửa sổ
-- Đóng cửa sổ chính sẽ thoát app hẳn thay vì tiếp tục chạy nền
+- Đóng cửa sổ chính sẽ thoát app hẳn
 
-## Cài đặt
-Yêu cầu:
+## Cách dùng nhanh
+1. Mở app
+2. Bấm **Tải file mẫu** để test nhanh, hoặc chọn file Excel của bạn
+3. Kiểm tra mapping cột
+4. Nếu cần, vào **Settings / Proxy** để cấu hình proxy
+5. Bấm **Tải danh sách**
+6. Bấm **Bắt đầu** để chạy tra cứu
+7. Bấm **Xuất Excel** để lưu kết quả
+
+## Proxy
+Ứng dụng hỗ trợ 3 chế độ:
+- **System**: dùng proxy của hệ điều hành
+- **Manual**: nhập proxy thủ công
+- **Direct**: không dùng proxy
+
+## Yêu cầu
 - Windows 10/11
 - Node.js 20+ hoặc 22+
-- Kết nối mạng truy cập được cổng tra cứu thuế
+- Truy cập được cổng tra cứu thuế
 
-Cài dependency:
+## Chạy ứng dụng
 ```bash
 npm install
-```
-
-Chạy ứng dụng:
-```bash
 npm start
 ```
 
-Build bộ cài Windows:
+## Build bộ cài Windows
 ```bash
 npm run build:win
 ```
 
-## Cách dùng
-1. Mở app
-2. Nếu muốn test nhanh, bấm **Tải file mẫu** ngay trên giao diện để lưu một workbook mẫu `.xlsx`
-3. Hoặc chọn file Excel của bạn
-4. Kiểm tra mapping cột
-5. Nếu cần, mở **Settings / Proxy** để cấu hình proxy runtime
-6. Bấm **Tải danh sách**
-7. Bấm **Bắt đầu** để chạy tra cứu
-8. Xuất file kết quả khi hoàn tất
-
-Phần hướng dẫn ngắn cũng được đặt ngay phía trên vùng chọn file để user mới nhìn là biết thao tác.
-
-## Proxy runtime
-App hỗ trợ 3 chế độ proxy cho phần tra cứu:
-- **System**: dùng cấu hình proxy hệ điều hành
-- **Manual**: nhập proxy thủ công và bypass rules
-- **Direct**: bỏ qua proxy
-
-Cấu hình được lưu lại để dùng cho các lần mở app sau.
-
-## OCR / CAPTCHA
-- CAPTCHA được lấy từ trang tra cứu và OCR cục bộ bằng `tesseract.js`
-- File traineddata đã được bundle sẵn trong project:
-  - `assets/tesseract/eng.traineddata.gz`
-- Ở bản packaged, traineddata được unpack để worker có thể đọc trực tiếp từ filesystem
-
-## Log debug
-Khi cần debug OCR hoặc lỗi mạng:
-- xem console nơi chạy `npm start`
-- hoặc xem file `debug.log` trong thư mục `userData` của ứng dụng
-
-Các prefix log chính:
-- `[tesseract]`
-- `[network]`
-
-## Cấu trúc chính
-```text
-src/
-  main/
-  renderer/
-assets/tesseract/
-README.md
-APP-NOTES.md
-```
-
-## Ghi chú parity
-Bản desktop này giữ rất sát các phần cốt lõi của extension gốc:
-- luồng chọn file -> map cột -> tải danh sách -> bắt đầu -> xuất Excel
-- tra cứu 2 pha CCCD -> MST
-- OCR CAPTCHA cục bộ
-- xử lý retry
-- export nhiều dòng khi có multi-match
-
-Khác biệt chính còn lại là ứng dụng desktop không có vòng đời/background giống hệt extension trình duyệt.
