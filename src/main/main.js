@@ -6,13 +6,13 @@ const { createLogger } = require('./logger');
 
 const PROXY_SETTINGS_FILE = 'proxy-settings.json';
 
+const logger = createLogger();
 let mainWindow;
 let service;
 let isQuitting = false;
 let shutdownPromise = null;
 let forcedExitTimer = null;
 let appState = createInitialState();
-const logger = createLogger();
 
 function createInitialState() {
   return {
