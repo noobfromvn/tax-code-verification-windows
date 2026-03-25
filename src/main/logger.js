@@ -4,6 +4,7 @@ const fs = require('fs');
 const fsp = require('fs/promises');
 
 const LOG_FILE_NAME = 'debug.log';
+const DEBUG_ENABLED = process.env.TAX_APP_DEBUG === '1';
 
 function safeJson(value) {
   try {
@@ -29,6 +30,7 @@ function createLogger() {
   const logPath = path.join(logDir, LOG_FILE_NAME);
 
   const writeLine = async (line) => {
+    if (!DEBUG_ENABLED) return;
     try {
       await fsp.mkdir(logDir, { recursive: true });
       await fsp.appendFile(logPath, `${line}\n`, 'utf8');
@@ -38,6 +40,7 @@ function createLogger() {
   };
 
   const log = (tag, message, meta) => {
+    if (!DEBUG_ENABLED) return;
     const timestamp = new Date().toISOString();
     const metaText = meta === undefined ? '' : ` ${safeJson(meta)}`;
     const line = `${timestamp} ${tag} ${message}${metaText}`;
@@ -53,6 +56,7 @@ function createLogger() {
   };
 
   const resetSessionMarker = () => {
+    if (!DEBUG_ENABLED) return;
     const line = `${new Date().toISOString()} [app] session-start ${process.pid}`;
     console.log(line);
     try {
@@ -69,6 +73,7 @@ function createLogger() {
     logError,
     serializeError,
     resetSessionMarker,
+    debugEnabled: DEBUG_ENABLED,
   };
 }
 

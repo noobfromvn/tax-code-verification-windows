@@ -90,6 +90,26 @@ body {
   line-height: 1.45;
 }
 
+.inline-guide {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1e3a8a;
+  line-height: 1.5;
+}
+
+.action-row-tight {
+  margin-top: 10px;
+}
+
+.muted-text {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 #dropzone {
   border: 2px dashed #c6d0e0;
   border-radius: 12px;

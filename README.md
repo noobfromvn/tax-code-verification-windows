@@ -13,8 +13,10 @@ Repo gốc dùng để phân tích và đối chiếu hành vi:
 - Xử lý CAPTCHA bằng **Tesseract.js** cục bộ
 - Tạm dừng / tiếp tục / dừng hàng đợi
 - Xuất file Excel kết quả
+- Tải nhanh file Excel mẫu để test ngay trên máy Windows
 - Hỗ trợ proxy runtime ngay trong giao diện app
 - Giao diện responsive hơn khi resize cửa sổ
+- Đóng cửa sổ chính sẽ thoát app hẳn thay vì tiếp tục chạy nền
 
 ## Cài đặt
 Yêu cầu:
@@ -39,12 +41,15 @@ npm run build:win
 
 ## Cách dùng
 1. Mở app
-2. Chọn file Excel
-3. Kiểm tra mapping cột
-4. Nếu cần, mở **Settings / Proxy** để cấu hình proxy runtime
-5. Bấm **Tải danh sách**
-6. Bấm **Bắt đầu** để chạy tra cứu
-7. Xuất file kết quả khi hoàn tất
+2. Nếu muốn test nhanh, bấm **Tải file mẫu** ngay trên giao diện để lưu một workbook mẫu `.xlsx`
+3. Hoặc chọn file Excel của bạn
+4. Kiểm tra mapping cột
+5. Nếu cần, mở **Settings / Proxy** để cấu hình proxy runtime
+6. Bấm **Tải danh sách**
+7. Bấm **Bắt đầu** để chạy tra cứu
+8. Xuất file kết quả khi hoàn tất
+
+Phần hướng dẫn ngắn cũng được đặt ngay phía trên vùng chọn file để user mới nhìn là biết thao tác.
 
 ## Proxy runtime
 App hỗ trợ 3 chế độ proxy cho phần tra cứu:

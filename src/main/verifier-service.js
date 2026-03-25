@@ -143,12 +143,37 @@ class TaxVerifierService {
     this.isPaused = false;
     this.isRunning = false;
     await this.disposeLookupWindow();
+    await this.disposeLookupSession();
   }
 
   async dispose() {
+    this.isStopped = true;
+    this.isPaused = false;
+    this.isRunning = false;
     await this.disposeLookupWindow();
+    await this.disposeLookupSession();
     const worker = await this.workerPromise?.catch(() => null);
+    this.workerPromise = null;
     if (worker) await worker.terminate();
+  }
+
+  createSampleWorkbook() {
+    const rows = [
+      ['Thông tin CCCD', 'MST', 'Đồng bộ CCCD', 'Ghi chú'],
+      ['079203001234', '', '', 'Test bằng CCCD'],
+      ['', '0123456789', '', 'Test bằng MST fallback'],
+      ['079203009999', '0312345678', '', 'Có cả CCCD và MST để kiểm tra mapping'],
+    ];
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    worksheet['!cols'] = [
+      { wch: 24 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 34 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'MauTraCuu');
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
 
   async exportWorkbook(workbookData, results, originalPath) {
@@ -266,6 +291,14 @@ class TaxVerifierService {
       this.lookupWindow.destroy();
     }
     this.lookupWindow = null;
+  }
+
+  async disposeLookupSession() {
+    try {
+      await this.lookupSession.closeAllConnections();
+    } catch (error) {
+      this.logger.logError('[network]', 'lookup-session-close-failed', error);
+    }
   }
 
   async lookupCode(code) {
