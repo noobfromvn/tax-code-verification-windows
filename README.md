@@ -1,4 +1,4 @@
-# Tax Code Verification for Windows
+# Tra cứu MST/CCCD hàng loạt
 
 Ứng dụng desktop Windows dùng để tra cứu MST/CCCD từ file Excel, được xây lại dựa trên repo gốc:
 - https://github.com/kyimmQ/tax-code-verification
