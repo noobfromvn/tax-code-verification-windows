@@ -1,0 +1,48 @@
+{
+  "name": "tax-code-verification-windows",
+  "version": "1.0.0",
+  "description": "Windows desktop app for Vietnamese tax code verification with CAPTCHA OCR",
+  "main": "src/main/main.js",
+  "author": "OpenClaw",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build:win": "electron-builder --win nsis",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "tesseract.js": "^6.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^37.10.3",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "vn.openclaw.taxcodeverifier",
+    "productName": "Tax Code Verification",
+    "directories": {
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "assets/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "assets/tesseract/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}
